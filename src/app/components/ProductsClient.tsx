@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { LayoutGrid, List as ListIcon } from "lucide-react";
 
 type ProductsClientProps = {
   products: Product[];
@@ -28,9 +30,11 @@ export default function ProductsClient({
   const query = useProductsStore((s) => s.query);
   const category = useProductsStore((s) => s.category);
   const sort = useProductsStore((s) => s.sort);
+  const view = useProductsStore((s) => s.view);
   const setQuery = useProductsStore((s) => s.setQuery);
   const setCategory = useProductsStore((s) => s.setCategory);
   const setSort = useProductsStore((s) => s.setSort);
+  const setView = useProductsStore((s) => s.setView);
 
   const visibleProducts = useMemo(() => {
     let list = products;
@@ -82,14 +86,16 @@ export default function ProductsClient({
             <SelectTrigger
               aria-label="Category"
               role="combobox"
-              className="w-full sm:w-[220px]"
+              className="w-full sm:w-[220px] capitalize"
             >
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all" className="capitalize">
+                All
+              </SelectItem>
               {categories.map((c) => (
-                <SelectItem key={c} value={c}>
+                <SelectItem key={c} value={c} className="capitalize">
                   {c}
                 </SelectItem>
               ))}
@@ -114,33 +120,98 @@ export default function ProductsClient({
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label className="mb-1 block">View</Label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              aria-label="Grid view"
+              aria-pressed={view === "grid"}
+              onClick={() => setView("grid")}
+              className={cn(
+                "h-9 px-3 rounded-md border flex items-center gap-2",
+                view === "grid"
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-transparent"
+              )}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="hidden sm:inline">Grid</span>
+            </button>
+            <button
+              type="button"
+              aria-label="List view"
+              aria-pressed={view === "list"}
+              onClick={() => setView("list")}
+              className={cn(
+                "h-9 px-3 rounded-md border flex items-center gap-2",
+                view === "list"
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-transparent"
+              )}
+            >
+              <ListIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">List</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {visibleProducts.map((p) => (
-          <Card key={p.id} className="p-4">
-            <article>
-              <div className="relative w-full h-48 mb-3">
-                <img
-                  src={p.image}
-                  alt={p.title}
-                  className="object-contain w-full h-full"
-                />
-              </div>
-              <h3 className="text-sm font-medium line-clamp-2 mb-1">
-                {p.title}
-              </h3>
-              <div className="text-xs text-black/60 dark:text-white/60 mb-2 capitalize">
-                {p.category}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">£{p.price.toFixed(2)}</span>
-                <span className="text-xs">{p.rating?.rate ?? 0}</span>
-              </div>
-            </article>
-          </Card>
-        ))}
-      </div>
+      {view === "grid" ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {visibleProducts.map((p) => (
+            <Card key={p.id} className="p-4">
+              <article>
+                <div className="relative w-full h-48 mb-3">
+                  <img
+                    src={p.image}
+                    alt={p.title}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+                <h3 className="text-sm font-medium line-clamp-2 mb-1">
+                  {p.title}
+                </h3>
+                <div className="text-xs text-black/60 dark:text-white/60 mb-2 capitalize">
+                  {p.category}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">£{p.price.toFixed(2)}</span>
+                  <span className="text-xs">{p.rating?.rate ?? 0}</span>
+                </div>
+              </article>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visibleProducts.map((p) => (
+            <Card key={p.id} className="p-4">
+              <article className="flex gap-4 items-start">
+                <div className="relative w-28 h-28 shrink-0">
+                  <img
+                    src={p.image}
+                    alt={p.title}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-medium line-clamp-2 mb-1">
+                    {p.title}
+                  </h3>
+                  <div className="text-xs text-black/60 dark:text-white/60 mb-2 capitalize">
+                    {p.category}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">£{p.price.toFixed(2)}</span>
+                    <span className="text-xs">{p.rating?.rate ?? 0}</span>
+                  </div>
+                </div>
+              </article>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {visibleProducts.length === 0 && (
         <div className="text-center text-sm text-black/60 dark:text-white/60">
