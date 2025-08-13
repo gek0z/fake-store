@@ -60,8 +60,8 @@ function ProductsSkeleton() {
 
 export default function Home() {
   return (
-    <div className="font-sans min-h-screen p-8 sm:p-12">
-      <header className="mb-8 flex items-center gap-3">
+    <div className="font-sans min-h-screen p-4 sm:p-8">
+      <header className="mb-8 flex items-center gap-3 justify-center w-full">
         <img
           src="/fakestore-logo.svg"
           alt="FakeStore Logo"

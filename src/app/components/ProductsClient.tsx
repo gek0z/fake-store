@@ -52,6 +52,40 @@ export default function ProductsClient({
     setIsDialogOpen(true);
   }, []);
 
+  // Color cycle for category pills using the 4 brand colors
+  const colorCycle = useMemo(
+    () => [
+      "var(--color-xantura-red)",
+      "var(--color-xantura-yellow)",
+      "var(--color-xantura-blue)",
+      "var(--color-xantura-green)",
+    ],
+    []
+  );
+
+  const getCategoryColor = useCallback(
+    (cat: string) => {
+      const indexInCategories = categories.findIndex((c) => c === cat);
+      const safeIndex = indexInCategories >= 0 ? indexInCategories : 0;
+      return colorCycle[safeIndex % colorCycle.length];
+    },
+    [categories, colorCycle]
+  );
+
+  const getPillStyle = useCallback(
+    (cat: string) => {
+      const base = getCategoryColor(cat);
+      return {
+        // Muted background from the base color
+        backgroundColor: `color-mix(in srgb, ${base} 10%, white)`,
+        // Darker text and border from the base color
+        color: `color-mix(in srgb, ${base} 60%, black)`,
+        borderColor: `color-mix(in srgb, ${base} 10%, white)`,
+      } as React.CSSProperties;
+    },
+    [getCategoryColor]
+  );
+
   // Memoized visible products
   const visibleProducts = useMemo(() => {
     let list = products;
@@ -87,7 +121,7 @@ export default function ProductsClient({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
         <div className="flex-1">
-          <Label htmlFor="search-title" className="mb-1 block">
+          <Label htmlFor="search-title" className="mb-1.5 block">
             Search by title
           </Label>
           <Input
@@ -95,15 +129,16 @@ export default function ProductsClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type to search..."
+            className="outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-white"
           />
         </div>
         <div>
-          <Label className="mb-1 block">Category</Label>
+          <Label className="mb-1.5 block">Category</Label>
           <Select value={category} onValueChange={(v) => setCategory(v)}>
             <SelectTrigger
               aria-label="Category"
               role="combobox"
-              className="w-full sm:w-[220px] capitalize"
+              className="w-full sm:w-[220px] capitalize outline-none bg-white shadow-none"
             >
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
@@ -120,12 +155,12 @@ export default function ProductsClient({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block">Sort</Label>
+          <Label className="mb-1.5 block">Sort</Label>
           <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
             <SelectTrigger
               aria-label="Sort"
               role="combobox"
-              className="w-full sm:w-[220px]"
+              className="w-full sm:w-[220px] outline-none bg-white shadow-none"
             >
               <SelectValue placeholder="Select sort" />
             </SelectTrigger>
@@ -138,7 +173,7 @@ export default function ProductsClient({
           </Select>
         </div>
         <div>
-          <Label className="mb-1 block">View</Label>
+          <Label className="mb-1.5 block">View</Label>
           <div className="flex gap-2">
             <button
               type="button"
@@ -146,14 +181,12 @@ export default function ProductsClient({
               aria-pressed={view === "grid"}
               onClick={() => setView("grid")}
               className={cn(
-                "h-9 px-3 rounded-md border flex items-center gap-2",
-                view === "grid"
-                  ? "bg-black text-white dark:bg-white dark:text-black"
-                  : "bg-transparent"
+                "w-1/2 sm:w-auto h-9 px-3 rounded-md border flex items-center gap-2 shadow-none text-center justify-center",
+                view === "grid" ? "bg-xantura-red text-white " : "bg-white"
               )}
             >
               <LayoutGrid className="h-4 w-4" />
-              <span className="hidden sm:inline">Grid</span>
+              <span className="inline">Grid</span>
             </button>
             <button
               type="button"
@@ -161,14 +194,12 @@ export default function ProductsClient({
               aria-pressed={view === "list"}
               onClick={() => setView("list")}
               className={cn(
-                "h-9 px-3 rounded-md border flex items-center gap-2",
-                view === "list"
-                  ? "bg-black text-white dark:bg-white dark:text-black"
-                  : "bg-transparent"
+                "w-1/2 sm:w-auto h-9 px-3 rounded-md border flex items-center gap-2 shadow-none text-center justify-center",
+                view === "list" ? "bg-xantura-red text-white " : "bg-white"
               )}
             >
               <ListIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">List</span>
+              <span className="inline">List</span>
             </button>
           </div>
         </div>
@@ -179,11 +210,11 @@ export default function ProductsClient({
           {visibleProducts.map((p) => (
             <Card
               key={p.id}
-              className="p-4 cursor-pointer"
+              className="p-4 h-full cursor-pointer shadow-none bg-white hover:bg-transparent transition-colors duration-300 hover:border-black "
               onClick={() => openProduct(p)}
             >
-              <article>
-                <div className="relative w-full h-48 mb-3">
+              <article className="flex flex-col h-full">
+                <div className="relative w-full h-48 mb-6">
                   <img
                     src={p.image}
                     alt={p.title}
@@ -193,12 +224,19 @@ export default function ProductsClient({
                 <h3 className="text-sm font-medium line-clamp-2 mb-1">
                   {p.title}
                 </h3>
-                <div className="text-xs text-black/60 dark:text-white/60 mb-2 capitalize">
-                  {p.category}
+                <div>
+                  <span
+                    className="text-xs mb-2 capitalize border rounded-md px-2 py-0.5 inline-block"
+                    style={getPillStyle(p.category)}
+                  >
+                    {p.category}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-auto">
                   <span className="font-semibold">£{p.price.toFixed(2)}</span>
-                  <span className="text-xs">{p.rating?.rate ?? 0}</span>
+                  <span className="text-xs text-black/60 border border-black/10 rounded-md px-2 py-0.5 inline-block bg-black/5 font-bold">
+                    {p.rating?.rate.toFixed(1) ?? 0}
+                  </span>
                 </div>
               </article>
             </Card>
@@ -209,10 +247,10 @@ export default function ProductsClient({
           {visibleProducts.map((p) => (
             <Card
               key={p.id}
-              className="p-4 cursor-pointer"
+              className="p-4 cursor-pointer bg-white hover:bg-transparent transition-colors duration-300 hover:border-black shadow-none"
               onClick={() => openProduct(p)}
             >
-              <article className="flex gap-4 items-start">
+              <article className="flex gap-4 items-stretch h-full">
                 <div className="relative w-28 h-28 shrink-0">
                   <img
                     src={p.image}
@@ -220,16 +258,23 @@ export default function ProductsClient({
                     className="object-contain w-full h-full"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="w-full min-w-0 flex-1 flex flex-col">
                   <h3 className="text-sm font-medium line-clamp-2 mb-1">
                     {p.title}
                   </h3>
-                  <div className="text-xs text-black/60 dark:text-white/60 mb-2 capitalize">
-                    {p.category}
+                  <div>
+                    <span
+                      className="text-xs mb-2 capitalize border rounded-md px-2 py-0.5 inline-block"
+                      style={getPillStyle(p.category)}
+                    >
+                      {p.category}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-auto">
                     <span className="font-semibold">£{p.price.toFixed(2)}</span>
-                    <span className="text-xs">{p.rating?.rate ?? 0}</span>
+                    <span className="text-xs text-black/60 border border-black/10 rounded-md px-2 py-0.5 inline-block bg-black/5 font-bold">
+                      {p.rating?.rate.toFixed(1) ?? 0}
+                    </span>
                   </div>
                 </div>
               </article>
@@ -239,7 +284,7 @@ export default function ProductsClient({
       )}
 
       {visibleProducts.length === 0 && (
-        <div className="text-center text-sm text-black/60 dark:text-white/60">
+        <div className="text-center text-sm text-black/60">
           No products found.
         </div>
       )}
@@ -259,11 +304,14 @@ export default function ProductsClient({
               </DialogTitle>
               <DialogDescription>
                 <span className="flex gap-2">
-                  <span className="capitalize border border-black/10 dark:border-white/10 rounded-md px-2 py-1">
+                  <span
+                    className="capitalize border rounded-md px-2 py-1 font-bold"
+                    style={getPillStyle(selectedProduct.category)}
+                  >
                     {selectedProduct.category}
                   </span>
-                  <span className="border border-black/10 dark:border-white/10 rounded-md px-2 py-1">
-                    Rating: {selectedProduct.rating?.rate ?? 0}
+                  <span className="border border-black/10 rounded-md px-2 py-1 font-bold">
+                    Rating: {selectedProduct.rating?.rate.toFixed(1) ?? 0}
                     {selectedProduct.rating?.count > 0 &&
                       ` (from ${selectedProduct.rating?.count} reviews)`}
                   </span>
@@ -272,16 +320,16 @@ export default function ProductsClient({
             </DialogHeader>
 
             <div className="grid gap-4 sm:grid-cols-[200px_1fr] w-full">
-              <div className="relative w-full aspect-square border rounded-md p-3 bg-white dark:bg-black">
+              <div className="relative w-full aspect-square border rounded-md p-3 bg-white">
                 <img
                   src={selectedProduct.image}
                   alt={selectedProduct.title}
                   className="object-contain w-full h-full"
                 />
               </div>
-              <div className="text-sm leading-6 text-black/80 dark:text-white/80 flex flex-col gap-2 justify-between">
+              <div className="text-sm leading-6 text-black/80 flex flex-col gap-2 justify-between">
                 <p>{selectedProduct.description}</p>
-                <span className="text-black text-base sm:text-xl font-bold block text-center sm:text-right dark:text-white">
+                <span className="text-black text-base sm:text-xl font-bold block text-center sm:text-right">
                   Price: £{selectedProduct.price.toFixed(2)}
                 </span>
               </div>
