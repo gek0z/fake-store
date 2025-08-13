@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import type { Product } from "@/types/product";
 import { useProductsStore } from "@/store/useProductsStore";
 import type { SortOption } from "@/store/useProductsStore";
@@ -17,6 +16,14 @@ import {
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, List as ListIcon } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type ProductsClientProps = {
   products: Product[];
@@ -35,6 +42,13 @@ export default function ProductsClient({
   const setCategory = useProductsStore((s) => s.setCategory);
   const setSort = useProductsStore((s) => s.setSort);
   const setView = useProductsStore((s) => s.setView);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const openProduct = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsDialogOpen(true);
+  }, []);
 
   const visibleProducts = useMemo(() => {
     let list = products;
@@ -160,7 +174,11 @@ export default function ProductsClient({
       {view === "grid" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {visibleProducts.map((p) => (
-            <Card key={p.id} className="p-4">
+            <Card
+              key={p.id}
+              className="p-4 cursor-pointer"
+              onClick={() => openProduct(p)}
+            >
               <article>
                 <div className="relative w-full h-48 mb-3">
                   <img
@@ -186,7 +204,11 @@ export default function ProductsClient({
       ) : (
         <div className="space-y-4">
           {visibleProducts.map((p) => (
-            <Card key={p.id} className="p-4">
+            <Card
+              key={p.id}
+              className="p-4 cursor-pointer"
+              onClick={() => openProduct(p)}
+            >
               <article className="flex gap-4 items-start">
                 <div className="relative w-28 h-28 shrink-0">
                   <img
@@ -218,6 +240,52 @@ export default function ProductsClient({
           No products found.
         </div>
       )}
+
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setSelectedProduct(null);
+        }}
+      >
+        {selectedProduct && (
+          <DialogContent className="max-w-4xl w-full sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">
+                {selectedProduct.title}
+              </DialogTitle>
+              <DialogDescription>
+                <span className="flex gap-2">
+                  <span className="capitalize border border-black/10 dark:border-white/10 rounded-md px-2 py-1">
+                    {selectedProduct.category}
+                  </span>
+                  <span className="border border-black/10 dark:border-white/10 rounded-md px-2 py-1">
+                    Rating: {selectedProduct.rating?.rate ?? 0}
+                    {selectedProduct.rating?.count > 0 &&
+                      ` (from ${selectedProduct.rating?.count} reviews)`}
+                  </span>
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 sm:grid-cols-[200px_1fr] w-full">
+              <div className="relative w-full aspect-square border rounded-md p-3 bg-white dark:bg-black">
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.title}
+                  className="object-contain w-full h-full"
+                />
+              </div>
+              <div className="text-sm leading-6 text-black/80 dark:text-white/80 flex flex-col gap-2 justify-between">
+                <p>{selectedProduct.description}</p>
+                <span className="text-black text-base sm:text-xl font-bold block text-center sm:text-right dark:text-white">
+                  Price: £{selectedProduct.price.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }
