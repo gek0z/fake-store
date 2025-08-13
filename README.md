@@ -1,6 +1,9 @@
-# Next.js + React + TypeScript + TalwindCSS + Vitest/RTL
+# Next.js + React + TypeScript + TailwindCSS + Zustand + Vitest/RTL
 
-A Next.js web dashboard with fake data
+A Next.js web dashboard using fake data.
+
+Live preview:  
+[fakestore.riccardo.lol](https://fakestore.riccardo.lol)
 
 ### Requirements
 
