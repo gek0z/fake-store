@@ -11,13 +11,18 @@ type ProductsUiState = {
 };
 
 type ProductsUiActions = {
+  // Search by title
   setQuery: (query: string) => void;
+  // Filter by category
   setCategory: (category: string) => void;
+  // Sort by price or rating
   setSort: (sort: SortOption) => void;
+  // View as grid or list
   setView: (view: ViewOption) => void;
   reset: () => void;
 };
 
+// Set default/initial state
 const initialState: ProductsUiState = {
   query: "",
   category: "all",

@@ -2,10 +2,11 @@ import { Suspense } from "react";
 import ProductsClient from "./components/ProductsClient";
 import type { Product } from "@/types/product";
 
+// Server component to fetch products from the API
 async function fetchProducts(): Promise<Product[] | false> {
   try {
     const response = await fetch("https://fakestoreapi.com/products", {
-      // Revalidate every 2 hours
+      // Revalidate every 2 hours to avoid stale data
       next: { revalidate: 7200 },
     });
     if (!response.ok) {
@@ -13,15 +14,25 @@ async function fetchProducts(): Promise<Product[] | false> {
     }
     return response.json();
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return false;
   }
 }
 
 async function ProductsSection() {
   const products = await fetchProducts();
+  // Show error message if products are not fetched
   if (!products) {
-    return <div>Failed to fetch products</div>;
+    return (
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div className="text-center text-2xl font-bold text-red-500">
+          Failed to fetch products
+        </div>
+        <div className="text-center text-sm text-black/60 dark:text-white/60">
+          Please try again later
+        </div>
+      </div>
+    );
   }
   const categories = Array.from(new Set(products.map((p) => p.category))).sort(
     (a, b) => a.localeCompare(b)
@@ -29,6 +40,7 @@ async function ProductsSection() {
   return <ProductsClient products={products} categories={categories} />;
 }
 
+// Loading skeleton to show while products are loading
 function ProductsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
@@ -57,6 +69,7 @@ export default function Home() {
         />
       </header>
       <div className="space-y-6">
+        {/* Suspense boundary to show loading skeleton while products are loading */}
         <Suspense fallback={<ProductsSkeleton />}>
           <ProductsSection />
         </Suspense>

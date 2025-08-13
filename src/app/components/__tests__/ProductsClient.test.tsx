@@ -2,9 +2,9 @@ import React from "react";
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ProductsClient from "../ProductsClient";
+import ProductsClient from "@/app/components/ProductsClient";
 import { useProductsStore } from "@/store/useProductsStore";
-import type { Product } from "@/app/page";
+import type { Product } from "@/types/product";
 
 function makeProducts(): Product[] {
   return [

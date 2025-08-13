@@ -20,7 +20,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -34,6 +33,7 @@ export default function ProductsClient({
   products,
   categories,
 }: ProductsClientProps) {
+  // Zustand state management
   const query = useProductsStore((s) => s.query);
   const category = useProductsStore((s) => s.category);
   const sort = useProductsStore((s) => s.sort);
@@ -43,13 +43,16 @@ export default function ProductsClient({
   const setSort = useProductsStore((s) => s.setSort);
   const setView = useProductsStore((s) => s.setView);
 
+  // State for product dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
   const openProduct = useCallback((product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
   }, []);
 
+  // Memoized visible products
   const visibleProducts = useMemo(() => {
     let list = products;
 
